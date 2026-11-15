@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Harpija Pay • Web3 App (Kuroi Mori)</title>
-  <script src="https://jsdelivr.net"></script>
   <style>
     * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
     body {
@@ -83,13 +82,12 @@
   </div>
 
   <script>
-    const TOKENS = {
-      HTO:  { address: "0x41bfA0675Ed1dF3b1f36B4b54366d0dE1F087942", decimals: 18, el: "bal-hto", fixed: 4 },
-      JHT:  { address: "0x6e9c1564844d6b1a78724a63b3a12a854faf293f", decimals: 18, el: "bal-jht", fixed: 4 },
-      USDC: { address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", decimals: 6,  el: "bal-usdc", fixed: 2 },
-      USDT: { address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6,  el: "bal-usdt", fixed: 2 }
-    };
-    const ERC20_ABI = ["function balanceOf(address owner) view returns (uint256)"];
+    const TOKENS = [
+      { address: "0x41bfA0675Ed1dF3b1f36B4b54366d0dE1F087942", decimals: 18, el: "bal-hto", fixed: 4 },
+      { address: "0x6e9c1564844d6b1a78724a63b3a12a854faf293f", decimals: 18, el: "bal-jht", fixed: 4 },
+      { address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", decimals: 6,  el: "bal-usdc", fixed: 2 },
+      { address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6,  el: "bal-usdt", fixed: 2 }
+    ];
 
     function updateSim() {
       const val = parseFloat(document.getElementById("polAmount").value) || 0;
@@ -97,47 +95,63 @@
       document.getElementById("jhtOut").textContent = val.toFixed(2) + " JHT";
     }
 
+    function formatHexBalance(hexVal, decimals, fixed) {
+      if (!hexVal || hexVal === "0x") return (0).toFixed(fixed);
+      const raw = BigInt(hexVal);
+      const divisor = BigInt(10) ** BigInt(decimals);
+      const whole = raw / divisor;
+      const frac = raw % divisor;
+      const fracStr = frac.toString().padStart(decimals, "0").slice(0, fixed);
+      return whole.toString() + "." + fracStr;
+    }
+
     async function connectWallet() {
       const statusEl = document.getElementById("statusMsg");
       statusEl.textContent = "";
-      if (typeof ethers === "undefined") {
-        statusEl.textContent = "Erro ao carregar biblioteca ethers. Recarregue a página.";
-        return;
-      }
       if (!window.ethereum) {
         statusEl.textContent = "Abra esta página no navegador interno da Rabby Wallet.";
         return;
       }
       try {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        const network = await provider.getNetwork();
-        if (Number(network.chainId) !== 137) {
+        const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+        const userAddress = accounts[0];
+        const chainId = await window.ethereum.request({ method: "eth_chainId" });
+        if (chainId !== "0x89") {
           try {
-            await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x89" }] });
+            await window.ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: "0x89" }]
+            });
           } catch (switchErr) {
-            statusEl.textContent = "Troque a rede da carteira para Polygon PoS (Chain ID 137).";
+            statusEl.textContent = "Troque a rede da carteira para Polygon PoS.";
             return;
           }
         }
-        const updatedProvider = new ethers.BrowserProvider(window.ethereum);
-        const signer = await updatedProvider.getSigner();
-        const userAddress = await signer.getAddress();
+
         document.getElementById("btnConnect").textContent = "Carteira Conectada";
         const addrBox = document.getElementById("walletAddr");
         addrBox.style.display = "block";
         addrBox.textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
-        const polBal = await updatedProvider.getBalance(userAddress);
-        document.getElementById("bal-pol").textContent = Number(ethers.formatEther(polBal)).toFixed(4);
-        for (const key of Object.keys(TOKENS)) {
-          const t = TOKENS[key];
+
+        const polHex = await window.ethereum.request({
+          method: "eth_getBalance",
+          params: [userAddress, "latest"]
+        });
+        document.getElementById("bal-pol").textContent = formatHexBalance(polHex, 18, 4);
+
+        const cleanAddr = userAddress.toLowerCase().replace("0x", "").padStart(64, "0");
+        const callData = "0x70a08231" + cleanAddr;
+
+        for (let i = 0; i < TOKENS.length; i++) {
+          const t = TOKENS[i];
           try {
-            const contract = new ethers.Contract(t.address, ERC20_ABI, updatedProvider);
-            const raw = await contract.balanceOf(userAddress);
-            const formatted = Number(ethers.formatUnits(raw, t.decimals)).toFixed(t.fixed);
-            document.getElementById(t.el).textContent = formatted;
+            const resHex = await window.ethereum.request({
+              method: "eth_call",
+              params: [{ to: t.address, data: callData }, "latest"]
+            });
+            document.getElementById(t.el).textContent = formatHexBalance(resHex, t.decimals, t.fixed);
           } catch (e) {
-            document.getElementById(t.el).textContent = "0.00";
+            document.getElementById(t.el).textContent = (0).toFixed(t.fixed);
           }
         }
       } catch (err) {
