@@ -1,4 +1,86 @@
-<script>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harpija Pay • Conversor Web3 (Kuroi Mori)</title>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      margin: 0; padding: 20px 16px;
+      background: linear-gradient(rgba(9,13,22,0.85), rgba(9,13,22,0.94)), url('fundo.jpg');
+      background-size: cover; background-position: center; background-attachment: fixed;
+      color: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 460px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+    .back-link { color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; }
+    .net-badge { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 20px; }
+    .card { background: rgba(17,24,39,0.94); border: 1px solid #1f2937; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
+    h1 { font-size: 21px; margin: 0 0 6px; color: #ffffff; }
+    .sub { font-size: 13px; color: #94a3b8; margin: 0 0 16px; line-height: 1.5; }
+    .btn-connect { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .wallet-box { display: none; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 8px 12px; margin-top: 12px; font-size: 13px; color: #34d399; text-align: center; font-family: monospace; }
+    .grid-balances { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .bal-item { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 11px; }
+    .bal-label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+    .bal-val { font-size: 12px; color: #ffffff; font-weight: 700; margin-top: 4px; word-break: break-all; }
+    .swap-group { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .swap-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .swap-label { font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 6px; display: block; }
+    .swap-input { width: 55%; background: transparent; border: none; color: #ffffff; font-size: 20px; font-weight: 700; outline: none; }
+    .swap-select { width: 45%; background: #1e293b; color: #ffffff; border: 1px solid #334155; border-radius: 10px; padding: 10px 8px; font-size: 13px; font-weight: 700; }
+    .swap-div { text-align: center; margin: -4px 0 6px; }
+    .btn-invert { background: #1e293b; color: #38bdf8; border: 1px solid #334155; border-radius: 50%; width: 34px; height: 34px; font-size: 16px; cursor: pointer; }
+    .quote-info { font-size: 12px; color: #34d399; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 10px; margin-bottom: 12px; line-height: 1.5; }
+    .btn-exec { width: 100%; background: linear-gradient(135deg, #38bdf8, #0284c7); color: #ffffff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 800; cursor: pointer; }
+    .btn-exec:disabled { opacity: 0.5; cursor: not-allowed; }
+    .status-msg { font-size: 12px; color: #fbbf24; margin-top: 10px; text-align: center; line-height: 1.4; }
+  </style>
+</head><body>
+  <div class="container">
+    <div class="top-bar">
+      <a href="index.html" class="back-link">← Voltar ao Portal</a>
+      <span class="net-badge" id="netLabel">Polygon PoS</span>
+    </div>
+    <div class="card">
+      <h1>⚡ Harpija Pay</h1>
+      <p class="sub">Conversor Web3 multi-moedas do Ecossistema Kuroi Mori com roteamento inteligente e taxas baixas.</p>
+      <button class="btn-connect" id="btnConnect" onclick="connectWallet()">Conectar Carteira Web3</button>
+      <div class="wallet-box" id="walletAddr"></div>
+      <div class="grid-balances">
+        <div class="bal-item"><div class="bal-label">POL (Polygon)</div><div class="bal-val" id="bal-POL">0,0000</div></div>
+        <div class="bal-item"><div class="bal-label">HTO (Harpija)</div><div class="bal-val" id="bal-HTO">0,0000</div></div>
+        <div class="bal-item"><div class="bal-label">JHT (Jaguar Token)</div><div class="bal-val" id="bal-JHT">0,0000</div></div>
+        <div class="bal-item"><div class="bal-label">BRZ (Real Digital)</div><div class="bal-val" id="bal-BRZ">0,00</div></div>
+        <div class="bal-item"><div class="bal-label">USDC (Dólar)</div><div class="bal-val" id="bal-USDC">0,00</div></div>
+        <div class="bal-item"><div class="bal-label">USDT (Tether)</div><div class="bal-val" id="bal-USDT">0,00</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <h1>Conversor Inteligente</h1>
+      <p class="sub">Converta entre 15 ativos oficiais com a melhor rota e menor taxa na rede Polygon.</p>
+      <div class="swap-group">
+        <span class="swap-label">Você envia:</span>
+        <div class="swap-row">
+          <input type="number" id="amountIn" class="swap-input" value="10" min="0" step="any" oninput="debounceQuote()" />
+          <select id="tokenIn" class="swap-select" onchange="handleTokenChange()"></select>
+        </div>
+      </div>
+      <div class="swap-div"><button class="btn-invert" onclick="invertTokens()" title="Inverter moedas">⇅</button></div>
+      <div class="swap-group">
+        <span class="swap-label">Você recebe (estimado):</span>
+        <div class="swap-row">
+          <input type="text" id="amountOut" class="swap-input" value="0.00" readonly />
+          <select id="tokenOut" class="swap-select" onchange="debounceQuote()"></select>
+        </div>
+      </div>
+      <div class="quote-info" id="quoteBox">Digite um valor para buscar a melhor cotação em tempo real...</div>
+      <button class="btn-exec" id="btnSwap" onclick="executeSwap()">Buscar Cotação / Converter</button>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+  </div>
+      <script>
     const ASSETS = [
       { sym: "POL",   name: "POL (Polygon)",          chain: "0x89", addr: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", dec: 18, balId: "bal-POL",  fixed: 4 },
       { sym: "HTO",   name: "HTO (Harpija Jaguar)",   chain: "0x89", addr: "0x41bfA0675Ed1dF3b1f36B4b54366d0dE1F087942", dec: 18, balId: "bal-HTO",  fixed: 4 },
@@ -54,43 +136,25 @@
     function toWeiHex(amountStr, dec) {
       return "0x" + BigInt(toWeiStr(amountStr, dec)).toString(16);
     }
-
     async function connectWallet() {
       const st = document.getElementById("statusMsg");
       st.textContent = "";
-      if (!window.ethereum) {
-        st.textContent = "Abra este link dentro do navegador da Rabby Wallet.";
-        return;
-      }
+      if (!window.ethereum) { st.textContent = "Abra este link dentro do navegador Web3 da sua carteira."; return; }
       try {
         const accs = await window.ethereum.request({ method: "eth_requestAccounts" });
-        if (!accs || !accs.length) {
-          st.textContent = "Nenhuma conta autorizada na carteira.";
-          return;
-        }
+        if (!accs || !accs.length) { st.textContent = "Nenhuma conta autorizada na carteira."; return; }
         userAccount = accs.at(0);
         const chainId = await window.ethereum.request({ method: "eth_chainId" });
         if (chainId !== "0x89") {
           try {
-            await window.ethereum.request({
-              method: "wallet_switchEthereumChain",
-              params: [{ chainId: "0x89" }]
-            });
+            await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x89" }] });
           } catch (switchErr) {
             if (switchErr.code === 4902) {
               await window.ethereum.request({
                 method: "wallet_addEthereumChain",
-                params: [{
-                  chainId: "0x89",
-                  chainName: "Polygon Mainnet",
-                  nativeCurrency: { name: "POL", symbol: "POL", decimals: 18 },
-                  rpcUrls: ["https://polygon-rpc.com"],
-                  blockExplorerUrls: ["https://polygonscan.com"]
-                }]
+                params: [{ chainId: "0x89", chainName: "Polygon Mainnet", nativeCurrency: { name: "POL", symbol: "POL", decimals: 18 }, rpcUrls: ["https://polygon-rpc.com"], blockExplorerUrls: ["https://polygonscan.com"] }]
               });
-            } else {
-              throw switchErr;
-            }
+            } else { throw switchErr; }
           }
         }
         document.getElementById("btnConnect").textContent = "Carteira Conectada";
@@ -106,21 +170,14 @@
     async function loadBalances() {
       if (!userAccount) return;
       try {
-        const polHex = await window.ethereum.request({
-          method: "eth_getBalance",
-          params: [userAccount, "latest"]
-        });
+        const polHex = await window.ethereum.request({ method: "eth_getBalance", params: [userAccount, "latest"] });
         document.getElementById("bal-POL").textContent = formatPTBR(polHex, 18, 4);
       } catch (e) {}
-
       const clean = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
       for (const a of ASSETS) {
         if (!a.balId || a.sym === "POL") continue;
         try {
-          const res = await window.ethereum.request({
-            method: "eth_call",
-            params: [{ to: a.addr, data: "0x70a08231" + clean }, "latest"]
-          });
+          const res = await window.ethereum.request({ method: "eth_call", params: [{ to: a.addr, data: "0x70a08231" + clean }, "latest"] });
           document.getElementById(a.balId).textContent = formatPTBR(res, a.dec, a.fixed);
         } catch (e) {}
       }
@@ -166,26 +223,15 @@
       btn.textContent = "Buscar Cotação / Converter";
 
       if (aIn.chain !== "0x89") return;
-      if (!val || val <= 0) {
-        outInput.value = "0.00";
-        qBox.textContent = "Digite um valor maior que zero.";
-        currentRouteSummary = null;
-        return;
-      }
-      if (aIn.sym === aOut.sym) {
-        outInput.value = val.toString();
-        qBox.textContent = "Selecione moedas diferentes para converter.";
-        currentRouteSummary = null;
-        return;
-      }
+      if (!val || val <= 0) { outInput.value = "0.00"; qBox.textContent = "Digite um valor maior que zero."; currentRouteSummary = null; return; }
+      if (aIn.sym === aOut.sym) { outInput.value = val.toString(); qBox.textContent = "Selecione moedas diferentes para converter."; currentRouteSummary = null; return; }
 
       qBox.textContent = "Buscando melhor rota na Polygon...";
       try {
         const amountWei = toWeiStr(val.toString(), aIn.dec);
-        const url = `https://kyberswap.com{aIn.addr}&tokenOut=${aOut.addr}&amountIn=${amountWei}`;
-        const resp = await fetch(url, {
-          headers: { "x-client-id": "harpija-pay-web3" }
-        });
+        const host = "https://" + "aggregator-api." + "kyberswap.com";
+        const path = "/polygon/api/v1/routes?tokenIn=" + aIn.addr + "&tokenOut=" + aOut.addr + "&amountIn=" + amountWei;
+        const resp = await fetch(host + path, { headers: { "x-client-id": "harpija-pay-web3" } });
         const json = await resp.json();
 
         if (!json.data || !json.data.routeSummary) {
@@ -208,195 +254,7 @@
         const whole = (outRaw / div).toString();
         const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
         outInput.value = `${whole}.${frac}`;
-
-        const gasUsd = Number(currentRouteSummary.gasUsd || 0).toFixed(4);
-        qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${gasUsd}`;
-      } catch (e) {
-        outInput.value = "0.00";
-        qBox.textContent = "Erro na API: " + (e.message || "falha de rede.");
-        currentRouteSummary = null;
-      }
-    }async function getQuote() {
-      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
-      const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
-      const val = parseFloat(document.getElementById("amountIn").value);
-      const qBox = document.getElementById("quoteBox");
-      const outInput = document.getElementById("amountOut");
-      const btn = document.getElementById("btnSwap");
-
-      useUniswapFallback = false;
-      btn.textContent = "Buscar Cotação / Converter";
-
-      if (aIn.chain !== "0x89") return;
-      if (!val || val <= 0) {
-        outInput.value = "0.00";
-        qBox.textContent = "Digite um valor maior que zero.";
-        currentRouteSummary = null;
-        return;
-      }
-      if (aIn.sym === aOut.sym) {
-        outInput.value = val.toString();
-        qBox.textContent = "Selecione moedas diferentes para converter.";
-        currentRouteSummary = null;
-        return;
-      }
-
-      qBox.textContent = "Buscando melhor rota na Polygon...";
-      try {
-        const amountWei = toWeiStr(val.toString(), aIn.dec);
-        const url = `https://kyberswap.com{aIn.addr}&tokenOut=${aOut.addr}&amountIn=${amountWei}`;
-        const resp = await fetch(url, {
-          headers: { "x-client-id": "harpija-pay-web3" }
-        });
-        const json = await resp.json();
-
-        if (!json.data || !json.data.routeSummary) {
-          currentRouteSummary = null;
-          if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
-            outInput.value = "Pool V4";
-            qBox.textContent = "Pool oficial ativa na Uniswap V4. Toque abaixo para converter direto na Uniswap.";
-            btn.textContent = "Converter na Uniswap V4";
-            useUniswapFallback = true;
-          } else {
-            outInput.value = "0.00";
-            qBox.textContent = "Sem liquidez disponível para este par no momento.";
-          }
-          return;
-        }
-
-        currentRouteSummary = json.data.routeSummary;
-        const outRaw = BigInt(currentRouteSummary.amountOut);
-        const div = BigInt(10) ** BigInt(aOut.dec);
-        const whole = (outRaw / div).toString();
-        const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
-        outInput.value = `${whole}.${frac}`;
-
-        const gasUsd = Number(currentRouteSummary.gasUsd || 0).toFixed(4);
-        qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${gasUsd}`;
-      } catch (e) {
-        outInput.value = "0.00";
-        qBox.textContent = "Erro na API: " + (e.message || "falha de rede.");
-        currentRouteSummary = null;
-      }
-    }async function getQuote() {
-      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
-      const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
-      const val = parseFloat(document.getElementById("amountIn").value);
-      const qBox = document.getElementById("quoteBox");
-      const outInput = document.getElementById("amountOut");
-      const btn = document.getElementById("btnSwap");
-
-      useUniswapFallback = false;
-      btn.textContent = "Buscar Cotação / Converter";
-
-      if (aIn.chain !== "0x89") return;
-      if (!val || val <= 0) {
-        outInput.value = "0.00";
-        qBox.textContent = "Digite um valor maior que zero.";
-        currentRouteSummary = null;
-        return;
-      }
-      if (aIn.sym === aOut.sym) {
-        outInput.value = val.toString();
-        qBox.textContent = "Selecione moedas diferentes para converter.";
-        currentRouteSummary = null;
-        return;
-      }
-
-      qBox.textContent = "Buscando melhor rota na Polygon...";
-      try {
-        const amountWei = toWeiStr(val.toString(), aIn.dec);
-        const url = `https://kyberswap.com{aIn.addr}&tokenOut=${aOut.addr}&amountIn=${amountWei}`;
-        const resp = await fetch(url, {
-          headers: { "x-client-id": "harpija-pay-web3" }
-        });
-        const json = await resp.json();
-
-        if (!json.data || !json.data.routeSummary) {
-          currentRouteSummary = null;
-          if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
-            outInput.value = "Pool V4";
-            qBox.textContent = "Pool oficial ativa na Uniswap V4. Toque abaixo para converter direto na Uniswap.";
-            btn.textContent = "Converter na Uniswap V4";
-            useUniswapFallback = true;
-          } else {
-            outInput.value = "0.00";
-            qBox.textContent = "Sem liquidez disponível para este par no momento.";
-          }
-          return;
-        }
-
-        currentRouteSummary = json.data.routeSummary;
-        const outRaw = BigInt(currentRouteSummary.amountOut);
-        const div = BigInt(10) ** BigInt(aOut.dec);
-        const whole = (outRaw / div).toString();
-        const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
-        outInput.value = `${whole}.${frac}`;
-
-        const gasUsd = Number(currentRouteSummary.gasUsd || 0).toFixed(4);
-        qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${gasUsd}`;
-      } catch (e) {
-        outInput.value = "0.00";
-        qBox.textContent = "Erro na API: " + (e.message || "falha de rede.");
-        currentRouteSummary = null;
-      }
-    }async function getQuote() {
-      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
-      const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
-      const val = parseFloat(document.getElementById("amountIn").value);
-      const qBox = document.getElementById("quoteBox");
-      const outInput = document.getElementById("amountOut");
-      const btn = document.getElementById("btnSwap");
-
-      useUniswapFallback = false;
-      btn.textContent = "Buscar Cotação / Converter";
-
-      if (aIn.chain !== "0x89") return;
-      if (!val || val <= 0) {
-        outInput.value = "0.00";
-        qBox.textContent = "Digite um valor maior que zero.";
-        currentRouteSummary = null;
-        return;
-      }
-      if (aIn.sym === aOut.sym) {
-        outInput.value = val.toString();
-        qBox.textContent = "Selecione moedas diferentes para converter.";
-        currentRouteSummary = null;
-        return;
-      }
-
-      qBox.textContent = "Buscando melhor rota na Polygon...";
-      try {
-        const amountWei = toWeiStr(val.toString(), aIn.dec);
-        const url = `https://kyberswap.com{aIn.addr}&tokenOut=${aOut.addr}&amountIn=${amountWei}`;
-        const resp = await fetch(url, {
-          headers: { "x-client-id": "harpija-pay-web3" }
-        });
-        const json = await resp.json();
-
-        if (!json.data || !json.data.routeSummary) {
-          currentRouteSummary = null;
-          if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
-            outInput.value = "Pool V4";
-            qBox.textContent = "Pool oficial ativa na Uniswap V4. Toque abaixo para converter direto na Uniswap.";
-            btn.textContent = "Converter na Uniswap V4";
-            useUniswapFallback = true;
-          } else {
-            outInput.value = "0.00";
-            qBox.textContent = "Sem liquidez disponível para este par no momento.";
-          }
-          return;
-        }
-
-        currentRouteSummary = json.data.routeSummary;
-        const outRaw = BigInt(currentRouteSummary.amountOut);
-        const div = BigInt(10) ** BigInt(aOut.dec);
-        const whole = (outRaw / div).toString();
-        const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
-        outInput.value = `${whole}.${frac}`;
-
-        const gasUsd = Number(currentRouteSummary.gasUsd || 0).toFixed(4);
-        qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${gasUsd}`;
+        qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${Number(currentRouteSummary.gasUsd || 0).toFixed(4)}`;
       } catch (e) {
         outInput.value = "0.00";
         qBox.textContent = "Erro na API: " + (e.message || "falha de rede.");
@@ -413,26 +271,16 @@
       if (useUniswapFallback) {
         const inParam = aIn.sym === "POL" ? "ETH" : aIn.addr;
         const outParam = aOut.sym === "POL" ? "ETH" : aOut.addr;
-        const uniUrl = `https://uniswap.org{inParam}&outputCurrency=${outParam}&value=${val}`;
-        window.open(uniUrl, "_blank");
+        const uniHost = "https://" + "app." + "uniswap.org";
+        window.open(uniHost + "/swap?chain=polygon&inputCurrency=" + inParam + "&outputCurrency=" + outParam + "&value=" + val, "_blank");
         return;
       }
 
-      if (!userAccount) {
-        await connectWallet();
-        if (!userAccount) return;
-      }
-
+      if (!userAccount) { await connectWallet(); if (!userAccount) return; }
       if (!currentRouteSummary) {
         await getQuote();
-        if (useUniswapFallback) {
-          executeSwap();
-          return;
-        }
-        if (!currentRouteSummary) {
-          st.textContent = "Nenhuma cotação válida disponível para trocar.";
-          return;
-        }
+        if (useUniswapFallback) { executeSwap(); return; }
+        if (!currentRouteSummary) { st.textContent = "Nenhuma cotação válida disponível para trocar."; return; }
       }
 
       const amountWei = toWeiStr(val, aIn.dec);
@@ -441,62 +289,31 @@
 
       try {
         st.textContent = "Preparando transação na rota KyberSwap...";
-        const buildResp = await fetch("https://kyberswap.com", {
+        const buildHost = "https://" + "aggregator-api." + "kyberswap.com";
+        const buildResp = await fetch(buildHost + "/polygon/api/v1/route/build", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-client-id": "harpija-pay-web3"
-          },
-          body: JSON.stringify({
-            routeSummary: currentRouteSummary,
-            sender: userAccount,
-            recipient: userAccount,
-            slippageTolerance: 100
-          })
-        });
-        const buildJson = await buildResp.json();
-        if (!buildJson.data || !buildJson.data.data) {
-          throw new Error("Não foi possível montar os dados do swap.");
-        }const routerAddress = buildJson.data.routerAddress;
+          headers: { "Content-Type": "application/json", "x-client-id": "harpija-pay-web3" },
+          body: JSON.stringify({ routeSummary: currentRouteSummary, sender: userAccount, recipient: userAccount, slippageTolerance: 100 })
+        });const buildJson = await buildResp.json();
+        if (!buildJson.data || !buildJson.data.data) throw new Error("Não foi possível montar os dados do swap.");
 
+        const routerAddress = buildJson.data.routerAddress;
         if (aIn.sym !== "POL") {
           const cleanOwner = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
           const cleanSpender = routerAddress.toLowerCase().replace("0x", "").padStart(64, "0");
-          const allowHex = await window.ethereum.request({
-            method: "eth_call",
-            params: [{ to: aIn.addr, data: "0xdd62ed3e" + cleanOwner + cleanSpender }, "latest"]
-          });
+          const allowHex = await window.ethereum.request({ method: "eth_call", params: [{ to: aIn.addr, data: "0xdd62ed3e" + cleanOwner + cleanSpender }, "latest"] });
           if (BigInt(allowHex || "0x0") < BigInt(amountWei)) {
-            st.textContent = `Aprovando ${aIn.sym} na Rabby Wallet...`;
-            const maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-            const appTx = await window.ethereum.request({
-              method: "eth_sendTransaction",
-              params: [{
-                from: userAccount,
-                to: aIn.addr,
-                data: "0x095ea7b3" + cleanSpender + maxUint
-              }]
-            });
+            st.textContent = `Aprovando ${aIn.sym} na carteira...`;
+            const appTx = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from: userAccount, to: aIn.addr, data: "0x095ea7b3" + cleanSpender + "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }] });
             st.textContent = "Aguardando confirmação da aprovação...";
             await waitReceipt(appTx);
           }
         }
+              st.textContent = "Confirme a conversão na sua carteira...";
+        const txParams = { from: userAccount, to: routerAddress, data: buildJson.data.data };
+        if (aIn.sym === "POL") txParams.value = toWeiHex(val, 18);
 
-        st.textContent = "Confirme a conversão na Rabby Wallet...";
-        const txParams = {
-          from: userAccount,
-          to: routerAddress,
-          data: buildJson.data.data
-        };
-        if (aIn.sym === "POL") {
-          txParams.value = toWeiHex(val, 18);
-        }
-
-        const txHash = await window.ethereum.request({
-          method: "eth_sendTransaction",
-          params: [txParams]
-        });
-
+        const txHash = await window.ethereum.request({ method: "eth_sendTransaction", params: [txParams] });
         st.textContent = "Transação enviada! Aguardando confirmação...";
         await waitReceipt(txHash);
         st.textContent = "Conversão concluída com sucesso!";
@@ -510,10 +327,7 @@
 
     async function waitReceipt(hash) {
       for (let i = 0; i < 40; i++) {
-        const receipt = await window.ethereum.request({
-          method: "eth_getTransactionReceipt",
-          params: [hash]
-        });
+        const receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [hash] });
         if (receipt) return receipt;
         await new Promise(r => setTimeout(r, 2000));
       }
