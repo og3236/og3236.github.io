@@ -333,4 +333,89 @@
 
       const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
       const val = document.getElementById("amountIn").value;
-      const amountWei = toWeiStr(val, aIn.dec);
+      const amountWei = toWeiStr(val, aIn.dec);const btn = document.getElementById("btnSwap");
+      btn.disabled = true;
+
+      try {
+        st.textContent = "Preparando transação na rota KyberSwap...";
+        const buildResp = await fetch("https://kyberswap.com", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            routeSummary: currentRouteSummary,
+            sender: userAccount,
+            recipient: userAccount,
+            slippageTolerance: 100
+          })
+        });
+        const buildJson = await buildResp.json();
+        if (!buildJson.data || !buildJson.data.data) {
+          throw new Error("Não foi possível montar os dados do swap.");
+        }
+
+        const routerAddress = buildJson.data.routerAddress;
+
+        if (aIn.sym !== "POL") {
+          const cleanOwner = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
+          const cleanSpender = routerAddress.toLowerCase().replace("0x", "").padStart(64, "0");
+          const allowHex = await window.ethereum.request({
+            method: "eth_call",
+            params: [{ to: aIn.addr, data: "0xdd62ed3e" + cleanOwner + cleanSpender }, "latest"]
+          });
+          if (BigInt(allowHex || "0x0") < BigInt(amountWei)) {
+            st.textContent = `Aprovando ${aIn.sym} na Rabby Wallet...`;
+            const maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+            const appTx = await window.ethereum.request({
+              method: "eth_sendTransaction",
+              params: [{
+                from: userAccount,
+                to: aIn.addr,
+                data: "0x095ea7b3" + cleanSpender + maxUint
+              }]
+            });
+            st.textContent = "Aguardando confirmação da aprovação...";
+            await waitReceipt(appTx);
+          }
+        }
+
+        st.textContent = "Confirme a conversão na Rabby Wallet...";
+        const txParams = {
+          from: userAccount,
+          to: routerAddress,
+          data: buildJson.data.data
+        };
+        if (aIn.sym === "POL") {
+          txParams.value = toWeiHex(val, 18);
+        }
+
+        const txHash = await window.ethereum.request({
+          method: "eth_sendTransaction",
+          params: [txParams]
+        });
+
+        st.textContent = "Transação enviada! Aguardando confirmação...";
+        await waitReceipt(txHash);
+        st.textContent = "Conversão concluída com sucesso!";
+        await loadBalances();
+      } catch (e) {
+        st.textContent = "Operação cancelada ou erro: " + (e.message || "falha na transação.");
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function waitReceipt(hash) {
+      for (let i = 0; i < 40; i++) {
+        const receipt = await window.ethereum.request({
+          method: "eth_getTransactionReceipt",
+          params: [hash]
+        });
+        if (receipt) return receipt;
+        await new Promise(r => setTimeout(r, 2000));
+      }
+    }
+
+    initSelectors();
+  </script>
+</body>
+</html>
