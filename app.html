@@ -1,1 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Harpija Pay • Web3 App (Kuroi Mori)</title>
+  <script src="https://jsdelivr.net"></script>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
+    body {
+      margin: 0; padding: 20px 16px;
+      background: linear-gradient(rgba(9,13,22,0.82), rgba(9,13,22,0.92)), url('fundo.jpg');
+      background-size: cover; background-position: center; background-attachment: fixed;
+      color: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+    }
+    .container { width: 100%; max-width: 460px; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .back-link { color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; text-shadow: 0 1px 6px rgba(0,0,0,0.6); }
+    .net-badge { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 20px; }
+    .card { background: rgba(17,24,39,0.92); border: 1px solid #1f2937; border-radius: 16px; padding: 20px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    h1 { font-size: 22px; margin: 0 0 6px; color: #ffffff; }
+    .sub { font-size: 13px; color: #94a3b8; margin: 0 0 18px; line-height: 1.5; }
+    .btn-connect { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .wallet-box { display: none; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 10px 12px; margin-top: 14px; font-size: 13px; color: #34d399; text-align: center; font-family: monospace; }
+    .grid-balances { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+    .bal-item { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; }
+    .bal-label { font-size: 11px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
+    .bal-val { font-size: 16px; color: #ffffff; font-weight: 700; margin-top: 4px; word-break: break-all; }
+    .sim-box label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 6px; font-weight: 600; }
+    .sim-input { width: 100%; background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 12px; color: #ffffff; font-size: 16px; font-weight: 700; margin-bottom: 12px; }
+    .sim-out { background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 12px; font-size: 14px; color: #34d399; margin-bottom: 14px; }
+    .btn-swap { display: block; width: 100%; text-align: center; text-decoration: none; background: #10b981; color: #ffffff; font-weight: 800; padding: 14px; border-radius: 12px; font-size: 15px; margin-bottom: 10px; }
+    .btn-swap-2 { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; margin-bottom: 0; }
+    .status-msg { font-size: 12px; color: #f87171; margin-top: 10px; text-align: center; }
+  </style>
+</head><body>
+  <div class="container">
+    <div class="top-bar">
+      <a href="index.html" class="back-link">← Voltar ao Portal</a>
+      <span class="net-badge">Polygon PoS</span>
+    </div>
 
+    <div class="card">
+      <h1>⚡ Harpija Pay</h1>
+      <p class="sub">Carteira Web3 oficial do Ecossistema Kuroi Mori para consulta de ativos e liquidez na Uniswap V4.</p>
+      <button class="btn-connect" id="btnConnect" onclick="connectWallet()">Conectar Rabby Wallet</button>
+      <div class="wallet-box" id="walletAddr"></div>
+      <div class="status-msg" id="statusMsg"></div>
+
+      <div class="grid-balances">
+        <div class="bal-item">
+          <div class="bal-label">POL (Gas / Pool)</div>
+          <div class="bal-val" id="bal-pol">0.0000</div>
+        </div>
+        <div class="bal-item">
+          <div class="bal-label">HTO (Harpija)</div>
+          <div class="bal-val" id="bal-hto">0.0000</div>
+        </div>
+        <div class="bal-item">
+          <div class="bal-label">JHT (Floresta Verde)</div>
+          <div class="bal-val" id="bal-jht">0.0000</div>
+        </div>
+        <div class="bal-item">
+          <div class="bal-label">USDC (Native)</div>
+          <div class="bal-val" id="bal-usdc">0.00</div>
+        </div>
+        <div class="bal-item">
+          <div class="bal-label">USDT (Tether)</div>
+          <div class="bal-val" id="bal-usdt">0.00</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card sim-box">
+      <h1>Conversor & Liquidez</h1>
+      <p class="sub">Referência inicial das pools na Uniswap V4 (50/50 - 1 POL = 1 HTO / 1 POL = 1 JHT).</p>
+      <label for="polAmount">Quantidade em POL para simular:</label>
+      <input type="number" id="polAmount" class="sim-input" value="10" min="0" step="any" oninput="updateSim()" />
+      <div class="sim-out">Estimativa: <strong id="htoOut">10.00 HTO</strong> ou <strong id="jhtOut">10.00 JHT</strong></div>
+      <a class="btn-swap" href="https://uniswap.org" target="_blank" rel="noopener">Abrir Pool HTO/POL na Uniswap</a>
+      <a class="btn-swap btn-swap-2" href="https://uniswap.org" target="_blank" rel="noopener">Abrir Pool JHT/POL na Uniswap</a>
+    </div>
+  </div>
+
+  <script>
+    const TOKENS = {
+      HTO:  { address: "0x41bfA0675Ed1dF3b1f36B4b54366d0dE1F087942", decimals: 18, el: "bal-hto", fixed: 4 },
+      JHT:  { address: "0x6e9c1564844d6b1a78724a63b3a12a854faf293f", decimals: 18, el: "bal-jht", fixed: 4 },
+      USDC: { address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", decimals: 6,  el: "bal-usdc", fixed: 2 },
+      USDT: { address: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", decimals: 6,  el: "bal-usdt", fixed: 2 }
+    };
+    const ERC20_ABI = ["function balanceOf(address owner) view returns (uint256)"];
+
+    function updateSim() {
+      const val = parseFloat(document.getElementById("polAmount").value) || 0;
+      document.getElementById("htoOut").textContent = val.toFixed(2) + " HTO";
+      document.getElementById("jhtOut").textContent = val.toFixed(2) + " JHT";
+    }
+
+    async function connectWallet() {
+      const statusEl = document.getElementById("statusMsg");
+      statusEl.textContent = "";
+      if (typeof ethers === "undefined") {
+        statusEl.textContent = "Erro ao carregar biblioteca ethers. Recarregue a página.";
+        return;
+      }
+      if (!window.ethereum) {
+        statusEl.textContent = "Abra esta página no navegador interno da Rabby Wallet.";
+        return;
+      }
+      try {
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send("eth_requestAccounts", []);
+        const network = await provider.getNetwork();
+        if (Number(network.chainId) !== 137) {
+          try {
+            await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x89" }] });
+          } catch (switchErr) {
+            statusEl.textContent = "Troque a rede da carteira para Polygon PoS (Chain ID 137).";
+            return;
+          }
+        }
+        const updatedProvider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await updatedProvider.getSigner();
+        const userAddress = await signer.getAddress();
+        document.getElementById("btnConnect").textContent = "Carteira Conectada";
+        const addrBox = document.getElementById("walletAddr");
+        addrBox.style.display = "block";
+        addrBox.textContent = userAddress.slice(0, 6) + "..." + userAddress.slice(-4);
+        const polBal = await updatedProvider.getBalance(userAddress);
+        document.getElementById("bal-pol").textContent = Number(ethers.formatEther(polBal)).toFixed(4);
+        for (const key of Object.keys(TOKENS)) {
+          const t = TOKENS[key];
+          try {
+            const contract = new ethers.Contract(t.address, ERC20_ABI, updatedProvider);
+            const raw = await contract.balanceOf(userAddress);
+            const formatted = Number(ethers.formatUnits(raw, t.decimals)).toFixed(t.fixed);
+            document.getElementById(t.el).textContent = formatted;
+          } catch (e) {
+            document.getElementById(t.el).textContent = "0.00";
+          }
+        }
+      } catch (err) {
+        statusEl.textContent = "Conexão cancelada ou erro ao ler a carteira.";
+      }
+    }
+  </script>
+</body>
+</html>
