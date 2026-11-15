@@ -106,9 +106,7 @@
       <button class="btn-exec" id="btnSwap" onclick="executeSwap()">Buscar Cotação / Converter</button>
       <div class="status-msg" id="statusMsg"></div>
     </div>
-  </div>
-
-  <script>
+  </div><script>
     const ASSETS = [
       { sym: "POL",   name: "POL (Polygon)",          chain: "0x89", addr: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", dec: 18, balId: "bal-POL",  fixed: 4 },
       { sym: "HTO",   name: "HTO (Harpija Jaguar)",   chain: "0x89", addr: "0x41bfA0675Ed1dF3b1f36B4b54366d0dE1F087942", dec: 18, balId: "bal-HTO",  fixed: 4 },
@@ -152,23 +150,55 @@
       return whole + "," + frac;
     }
 
-    function toWeiHex(amountStr, dec) {
-      const parts = amountStr.split(".");
-      const whole = parts[0] || "0";
-      const frac = (parts[1] || "").padEnd(dec, "0").slice(0, dec);
+    function toWeiStr(amountStr, dec) {
+      const clean = String(amountStr).replace(",", ".");
+      const parts = clean.split(".");
+      const whole = parts.at(0) || "0";
+      const frac = (parts.at(1) || "").padEnd(dec, "0").slice(0, dec);
       return (BigInt(whole) * (BigInt(10) ** BigInt(dec)) + BigInt(frac)).toString();
+    }
+
+    function toWeiHex(amountStr, dec) {
+      return "0x" + BigInt(toWeiStr(amountStr, dec)).toString(16);
     }
 
     async function connectWallet() {
       const st = document.getElementById("statusMsg");
       st.textContent = "";
-      if (!window.ethereum) { st.textContent = "Abra no navegador interno da Rabby Wallet."; return; }
+      if (!window.ethereum) {
+        st.textContent = "Abra este link dentro do navegador da Rabby Wallet.";
+        return;
+      }
       try {
         const accs = await window.ethereum.request({ method: "eth_requestAccounts" });
-        userAccount = accs[0];
+        if (!accs || !accs.length) {
+          st.textContent = "Nenhuma conta autorizada na carteira.";
+          return;
+        }
+        userAccount = accs.at(0);
         const chainId = await window.ethereum.request({ method: "eth_chainId" });
         if (chainId !== "0x89") {
-          await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x89" }] });
+          try {
+            await window.ethereum.request({
+              method: "wallet_switchEthereumChain",
+              params: [{ chainId: "0x89" }]
+            });
+          } catch (switchErr) {
+            if (switchErr.code === 4902) {
+              await window.ethereum.request({
+                method: "wallet_addEthereumChain",
+                params: [{
+                  chainId: "0x89",
+                  chainName: "Polygon Mainnet",
+                  nativeCurrency: { name: "POL", symbol: "POL", decimals: 18 },
+                  rpcUrls: ["https://polygon-rpc.com"],
+                  blockExplorerUrls: ["https://polygonscan.com"]
+                }]
+              });
+            } else {
+              throw switchErr;
+            }
+          }
         }
         document.getElementById("btnConnect").textContent = "Carteira Conectada";
         const box = document.getElementById("walletAddr");
@@ -176,69 +206,131 @@
         box.textContent = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
         await loadBalances();
       } catch (e) {
-        st.textContent = "Conexão cancelada ou troca de rede recusada.";
+        st.textContent = "Erro ao conectar: " + (e.message || "conexão recusada.");
       }
     }
 
     async function loadBalances() {
       if (!userAccount) return;
-      const polHex = await window.ethereum.request({ method: "eth_getBalance", params: [userAccount, "latest"] });
-      document.getElementById("bal-POL").textContent = formatPTBR(polHex, 18, 4);
+      try {
+        const polHex = await window.ethereum.request({
+          method: "eth_getBalance",
+          params: [userAccount, "latest"]
+        });
+        document.getElementById("bal-POL").textContent = formatPTBR(polHex, 18, 4);
+      } catch (e) {}
+
       const clean = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
       for (const a of ASSETS) {
         if (!a.balId || a.sym === "POL") continue;
         try {
-          const res = await window.ethereum.request({ method: "eth_call", params: [{ to: a.addr, data: "0x70a08231" + clean }, "latest"] });
+          const res = await window.ethereum.request({
+            method: "eth_call",
+            params: [{ to: a.addr, data: "0x70a08231" + clean }, "latest"]
+          });
           document.getElementById(a.balId).textContent = formatPTBR(res, a.dec, a.fixed);
         } catch (e) {}
       }
     }
 
     function handleTokenChange() {
-      const aIn = ASSETS[document.getElementById("tokenIn").value];
+      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
       const qBox = document.getElementById("quoteBox");
       const btn = document.getElementById("btnSwap");
       if (aIn.chain !== "0x89") {
         document.getElementById("amountOut").value = "Ponte Cross-Chain";
-        qBox.innerHTML = "Ativo da rede <strong>" + aIn.sym + "</strong>. Ao clicar abaixo, sua carteira alterna a rede e abre a ponte oficial para Polygon.";
-        btn.textContent = "Abrir Ponte " + aIn.sym + " → Polygon";
-      } else {
-        btn.textContent = "Converter Agora";
-        getQuote();
+        qBox.textContent = "Ativo fora da Polygon. Use uma ponte cross-chain para trazer para a rede Polygon.";
+        btn.disabled = true;
+        return;
       }
+      btn.disabled = false;
+      debounceQuote();
     }
 
     function invertTokens() {
       const selIn = document.getElementById("tokenIn");
       const selOut = document.getElementById("tokenOut");
-      const aIn = ASSETS[selIn.value];
+      const aIn = ASSETS.at(Number(selIn.value));
       if (aIn.chain !== "0x89") return;
       const tmp = selIn.value;
       selIn.value = selOut.value;
       selOut.value = tmp;
-      getQuote();
+      debounceQuote();
     }
 
     function debounceQuote() {
       clearTimeout(quoteTimer);
-      quoteTimer = setTimeout(getQuote, 500);
+      quoteTimer = setTimeout(getQuote, 450);
     }
 
     async function getQuote() {
-      const aIn = ASSETS[document.getElementById("tokenIn").value];
-      const aOut = ASSETS[document.getElementById("tokenOut").value];
+      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
+      const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
       const val = parseFloat(document.getElementById("amountIn").value);
       const qBox = document.getElementById("quoteBox");
+      const outInput = document.getElementById("amountOut");
+
       if (aIn.chain !== "0x89") return;
-      if (!val || val <= 0 || aIn.sym === aOut.sym) {
-        document.getElementById("amountOut").value = "0.00";
-        qBox.textContent = "Selecione moedas diferentes e um valor maior que zero.";
+      if (!val || val <= 0) {
+        outInput.value = "0.00";
+        qBox.textContent = "Digite um valor maior que zero.";
+        currentRouteSummary = null;
         return;
       }
-      qBox.textContent = "Buscando melhor rota e menor taxa na Polygon...";
+      if (aIn.sym === aOut.sym) {
+        outInput.value = val.toString();
+        qBox.textContent = "Selecione moedas diferentes para converter.";
+        currentRouteSummary = null;
+        return;
+      }
+
+      qBox.textContent = "Buscando melhor rota na Polygon...";
       try {
-        const rawAmt = toWeiHex(val.toString(), aIn.dec);
-        const url = `https://kyberswap.com{aIn.addr}&tokenOut=${aOut.addr}&amountIn=${rawAmt}`;
+        const amountWei = toWeiStr(val.toString(), aIn.dec);
+        const url = `https://kyberswap.com{aIn.addr}&tokenOut=${aOut.addr}&amountIn=${amountWei}`;
         const resp = await fetch(url);
         const json = await resp.json();
-        if (json.code === 0 && json.data && json.data.routeSummary) {
+
+        if (!json.data || !json.data.routeSummary) {
+          outInput.value = "0.00";
+          qBox.textContent = "Sem liquidez disponível para este par no momento.";
+          currentRouteSummary = null;
+          return;
+        }
+
+        currentRouteSummary = json.data.routeSummary;
+        const outRaw = BigInt(currentRouteSummary.amountOut);
+        const div = BigInt(10) ** BigInt(aOut.dec);
+        const whole = (outRaw / div).toString();
+        const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
+        outInput.value = `${whole}.${frac}`;
+
+        const gasUsd = Number(currentRouteSummary.gasUsd || 0).toFixed(4);
+        qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${gasUsd}`;
+      } catch (e) {
+        outInput.value = "0.00";
+        qBox.textContent = "Falha ao consultar cotação. Verifique sua conexão.";
+        currentRouteSummary = null;
+      }
+    }
+
+    async function executeSwap() {
+      const st = document.getElementById("statusMsg");
+      st.textContent = "";
+
+      if (!userAccount) {
+        await connectWallet();
+        if (!userAccount) return;
+      }
+
+      if (!currentRouteSummary) {
+        await getQuote();
+        if (!currentRouteSummary) {
+          st.textContent = "Nenhuma cotação válida disponível para trocar.";
+          return;
+        }
+      }
+
+      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
+      const val = document.getElementById("amountIn").value;
+      const amountWei = toWeiStr(val, aIn.dec);
