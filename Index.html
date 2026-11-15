@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Harpija Jaguar (HTO) & Floresta Verde (JHT) — Portal Oficial</title>
+  <style>
+    :root {
+      --bg: #0b0f0d;
+      --card: #131a16;
+      --border: #23332a;
+      --text: #eef5f0;
+      --muted: #9eb0a5;
+      --gold: #e0b04b;
+      --green: #2ecc71;
+      --accent: #1f8a5b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px 16px 48px; }
+    .container { max-width: 780px; margin: 0 auto; }
+    header { text-align: center; padding: 28px 12px 32px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+    .badge { display: inline-block; background: rgba(46, 204, 113, 0.12); color: var(--green); border: 1px solid rgba(46, 204, 113, 0.3); padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; }
+    h1 { font-size: 26px; font-weight: 800; margin-bottom: 8px; }
+    header p { color: var(--muted); font-size: 15px; max-width: 560px; margin: 0 auto; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-bottom: 22px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+    .token-title { font-size: 20px; font-weight: 700; }
+    .symbol-gold { color: var(--gold); }
+    .symbol-green { color: var(--green); }
+    .supply { font-size: 13px; color: var(--muted); background: rgba(255,255,255,0.04); padding: 4px 10px; border-radius: 8px; }
+    .desc { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    .contract-box { background: #080b09; border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+    .contract-addr { font-family: monospace; font-size: 12px; color: #cde0d5; word-break: break-all; }
+    .btn-copy { background: #1e2923; color: var(--text); border: 1px solid var(--border); padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .btn-copy:active { transform: scale(0.97); }
+    .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 480px) { .actions { grid-template-columns: 1fr; } }
+    .btn { display: block; text-align: center; text-decoration: none; padding: 12px 16px; border-radius: 10px; font-weight: 700; font-size: 14px; }
+    .btn-gold { background: var(--gold); color: #111; }
+    .btn-green { background: var(--green); color: #07140c; }
+    .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+    footer { text-align: center; margin-top: 32px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+    footer a { color: var(--green); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">REDE POLYGON POS • LIQUIDEZ ATIVA UNISWAP V4</div>
+      <h1>Ecossistema Kuroi Mori (黒い森)</h1>
+      <p>Portal oficial unificado dos ativos digitais Harpija Jaguar Token (HTO) e Floresta Verde (JHT).</p>
+    </header>
+
+    <!-- PROJETO 1: HTO -->
+    <section class="card">
+      <div class="card-header">
+        <div class="token-title">Harpija Jaguar Token <span class="symbol-gold">(HTO)</span></div>
+        <div class="supply">Supply: 31.000.000 HTO</div>
+      </div>
+      <p class="desc">Token principal do ecossistema. Contrato padrão OpenZeppelin auditável, sem travas de carteira e com pool de liquidez ativa HTO/POL na Uniswap V4.</p>
+      <div class="contract-box">
+        <span class="contract-addr" id="addr-hto">0x41bfA0675Ed1dF3b1f36B4b54366d0dE1F087942</span>
+        <button class="btn-copy" onclick="copyAddr('addr-hto', this)">Copiar</button>
+      </div>
+      <div class="actions">
+        <a class="btn btn-gold" href="https://uniswap.org" target="_blank" rel="noopener">Comprar HTO na Uniswap</a>
+        <a class="btn btn-outline" href="https://geckoterminal.com" target="_blank" rel="noopener">Gráfico GeckoTerminal</a>
+      </div>
+    </section>
+
+    <!-- PROJETO 2: JHT -->
+    <section class="card">
+      <div class="card-header">
+        <div class="token-title">Floresta Verde <span class="symbol-green">(JHT)</span></div>
+        <div class="supply">Supply: 21.000.000 JHT</div>
+      </div>
+      <p class="desc">Iniciativa ambiental descentralizada na rede Polygon PoS com pool de liquidez ativa JHT/POL na Uniswap V4.</p>
+      <div class="contract-box">
+        <span class="contract-addr" id="addr-jht">0x6e9c1564844d6b1a78724a63b3a12a854faf293f</span>
+        <button class="btn-copy" onclick="copyAddr('addr-jht', this)">Copiar</button>
+      </div>
+      <div class="actions">
+        <a class="btn btn-green" href="https://uniswap.org" target="_blank" rel="noopener">Comprar JHT na Uniswap</a>
+        <a class="btn btn-outline" href="https://geckoterminal.com" target="_blank" rel="noopener">Gráfico GeckoTerminal</a>
+      </div>
+    </section>
+
+    <footer>
+      <p>Desenvolvido por <strong>Kuroi Mori (黒い森 — Floresta Negra)</strong></p>
+      <p style="margin-top: 6px;">Contato Oficial: <a href="mailto:kuroimori@proton.me">kuroimori@proton.me</a></p>
+    </footer>
+  </div>
+
+  <script>
+    function copyAddr(elementId, btn) {
+      const text = document.getElementById(elementId).innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        const original = btn.innerText;
+        btn.innerText = "Copiado!";
+        setTimeout(() => { btn.innerText = original; }, 2000);
+      });
+    }
+  </script>
+</body>
+</html>
