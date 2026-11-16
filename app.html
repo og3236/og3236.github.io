@@ -341,19 +341,24 @@
         await new Promise(r => setTimeout(r, 2000));
       }
     }
-function openPixOnRamp(cryptoCode) {
+async function openPixOnRamp(cryptoCode) {
+      const st = document.getElementById("statusMsg");
+      if (userAccount && navigator.clipboard) {
+        try { await navigator.clipboard.writeText(userAccount); } catch (e) {}
+        st.textContent = "Endereço da carteira copiado! Selecione PIX (BRL) e " + cryptoCode + " (Polygon) na tela aberta.";
+      }
       const host = "https://" + "app." + "rampnetwork.com";
-      const asset = cryptoCode === "POL" ? "MATIC_POL" : "MATIC_USDC";
-      let url = host + "/?defaultAsset=" + asset + "&fiatCurrency=BRL&fiatValue=100";
-      if (userAccount) url += "&userAddress=" + userAccount;
-      window.open(url, "_blank");
+      window.open(host, "_blank");
     }
 
-    function openPixOffRamp() {
+    async function openPixOffRamp() {
+      const st = document.getElementById("statusMsg");
+      if (userAccount && navigator.clipboard) {
+        try { await navigator.clipboard.writeText(userAccount); } catch (e) {}
+        st.textContent = "Endereço copiado! Selecione Vender (Sell) na rede Polygon para receber em BRL via PIX.";
+      }
       const host = "https://" + "app." + "rampnetwork.com";
-      let url = host + "/?flow=offramp&defaultAsset=MATIC_USDC&fiatCurrency=BRL";
-      if (userAccount) url += "&userAddress=" + userAccount;
-      window.open(url, "_blank");
+      window.open(host, "_blank");
     }
     initSelectors();
   </script>
