@@ -342,16 +342,17 @@
       }
     }
 function openPixOnRamp(cryptoCode) {
-      const host = "https://" + "global." + "transak.com";
-      let url = host + "/?network=polygon&fiatCurrency=BRL&paymentMethod=pix&cryptoCurrencyCode=" + cryptoCode;
-      if (userAccount) url += "&walletAddress=" + userAccount;
+      const host = "https://" + "app." + "rampnetwork.com";
+      const asset = cryptoCode === "POL" ? "MATIC_POL" : "MATIC_USDC";
+      let url = host + "/?defaultAsset=" + asset + "&fiatCurrency=BRL&fiatValue=100";
+      if (userAccount) url += "&userAddress=" + userAccount;
       window.open(url, "_blank");
     }
 
     function openPixOffRamp() {
-      const host = "https://" + "global." + "transak.com";
-      let url = host + "/?productsAvailed=SELL&network=polygon&fiatCurrency=BRL&cryptoCurrencyCode=USDC";
-      if (userAccount) url += "&walletAddress=" + userAccount;
+      const host = "https://" + "app." + "rampnetwork.com";
+      let url = host + "/?flow=offramp&defaultAsset=MATIC_USDC&fiatCurrency=BRL";
+      if (userAccount) url += "&userAddress=" + userAccount;
       window.open(url, "_blank");
     }
     initSelectors();
