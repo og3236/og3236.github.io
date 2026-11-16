@@ -79,6 +79,15 @@
       <button class="btn-exec" id="btnSwap" onclick="executeSwap()">Buscar Cotação / Converter</button>
       <div class="status-msg" id="statusMsg"></div>
     </div>
+    <div class="card">
+      <h1>🇧🇷 Comprar / Sacar via PIX</h1>
+      <p class="sub">Adquira POL ou USDC direto com PIX (BRL) na rede Polygon para trocar por HTO ou JHT, ou saque seu saldo.</p>
+      <div style="display:flex; gap:10px; flex-direction:column;">
+        <button class="btn-connect" onclick="openPixOnRamp('POL')">Comprar POL com PIX (BRL)</button>
+        <button class="btn-exec" onclick="openPixOnRamp('USDC')">Comprar USDC com PIX (BRL)</button>
+        <button style="width:100%; background:#1e293b; color:#38bdf8; border:1px solid #334155; border-radius:12px; padding:12px; font-size:14px; font-weight:700; cursor:pointer;" onclick="openPixOffRamp()">Sacar Cripto para PIX (Off-Ramp)</button>
+      </div>
+    </div>
   </div>
       <script>
     const ASSETS = [
@@ -332,7 +341,19 @@
         await new Promise(r => setTimeout(r, 2000));
       }
     }
+function openPixOnRamp(cryptoCode) {
+      const host = "https://" + "global." + "transak.com";
+      let url = host + "/?network=polygon&fiatCurrency=BRL&paymentMethod=pix&cryptoCurrencyCode=" + cryptoCode;
+      if (userAccount) url += "&walletAddress=" + userAccount;
+      window.open(url, "_blank");
+    }
 
+    function openPixOffRamp() {
+      const host = "https://" + "global." + "transak.com";
+      let url = host + "/?productsAvailed=SELL&network=polygon&fiatCurrency=BRL&cryptoCurrencyCode=USDC";
+      if (userAccount) url += "&walletAddress=" + userAccount;
+      window.open(url, "_blank");
+    }
     initSelectors();
   </script>
 </body>
