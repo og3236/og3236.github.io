@@ -78,16 +78,16 @@
       <div class="quote-info" id="quoteBox">Digite um valor para buscar a melhor cotação em tempo real...</div>
       <button class="btn-exec" id="btnSwap" onclick="executeSwap()">Buscar Cotação / Converter</button>
       <div class="status-msg" id="statusMsg"></div>
-    </div>
-    <div class="card">
-      <h1>🇧🇷 Comprar / Sacar via PIX</h1>
-      <p class="sub">Adquira POL ou USDC direto com PIX (BRL) na rede Polygon para trocar por HTO ou JHT, ou saque seu saldo.</p>
-      <div style="display:flex; gap:10px; flex-direction:column;">
-        <button class="btn-connect" onclick="openPixOnRamp('POL')">Comprar POL com PIX (BRL)</button>
-        <button class="btn-exec" onclick="openPixOnRamp('USDC')">Comprar USDC com PIX (BRL)</button>
-        <button style="width:100%; background:#1e293b; color:#38bdf8; border:1px solid #334155; border-radius:12px; padding:12px; font-size:14px; font-weight:700; cursor:pointer;" onclick="openPixOffRamp()">Sacar Cripto para PIX (Off-Ramp)</button>
-      </div>
-    </div>
+    <div class="card" style="border: 1px solid #334155; background: rgba(15, 23, 42, 0.75);">
+    <h2>⚠️ Conformidade Regulatória — Fase 1</h2>
+    <p class="sub" style="line-height: 1.5; margin-bottom: 10px;">
+      O ecossistema <strong>Kuroi Mori (HTO e JHT)</strong> opera atualmente em <strong>Fase 1 (uso estritamente técnico na rede Polygon PoS)</strong>.
+    </p>
+    <ul style="font-size: 13px; color: #94a3b8; padding-left: 18px; line-height: 1.6; margin: 0;">
+      <li><strong>Sem Venda Comercial:</strong> Não há venda pública, captação, rampas PIX ou pools ativas na Uniswap para HTO ou JHT nesta etapa.</li>
+      <li><strong>Fase 2 &amp; Bloqueio Geográfico:</strong> Operações comerciais ocorrerão apenas na Fase 2 via estrutura corporativa em Dubai (EAU), com <em>geoblocking</em> aplicado ao Brasil e jurisdições restritas.</li>
+    </ul>
+  </div>
   </div>
       <script>
     const ASSETS = [
@@ -244,123 +244,106 @@
         const json = await resp.json();
 
         if (!json.data || !json.data.routeSummary) {
-          currentRouteSummary = null;
-          if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
-            outInput.value = "Pool V4";
-            qBox.textContent = "Pool oficial ativa na Uniswap V4. Toque abaixo para converter direto na Uniswap.";
-            btn.textContent = "Converter na Uniswap V4";
-            useUniswapFallback = true;
-          } else {
-            outInput.value = "0.00";
-            qBox.textContent = "Sem liquidez disponível para este par no momento.";
-          }
-          return;
-        }
-
-        currentRouteSummary = json.data.routeSummary;
-        const outRaw = BigInt(currentRouteSummary.amountOut);
-        const div = BigInt(10) ** BigInt(aOut.dec);
-        const whole = (outRaw / div).toString();
-        const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
-        outInput.value = `${whole}.${frac}`;
-        qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${Number(currentRouteSummary.gasUsd || 0).toFixed(4)}`;
-      } catch (e) {
-        outInput.value = "0.00";
-        qBox.textContent = "Erro na API: " + (e.message || "falha de rede.");
         currentRouteSummary = null;
-      }
-    }async function executeSwap() {
-      const st = document.getElementById("statusMsg");
-      st.textContent = "";
-
-      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
-      const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
-      const val = document.getElementById("amountIn").value;
-
-      if (useUniswapFallback) {
-        const inParam = aIn.sym === "POL" ? "ETH" : aIn.addr;
-        const outParam = aOut.sym === "POL" ? "ETH" : aOut.addr;
-        const uniHost = "https://" + "app." + "uniswap.org";
-        window.open(uniHost + "/swap?chain=polygon&inputCurrency=" + inParam + "&outputCurrency=" + outParam + "&value=" + val, "_blank");
+        if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
+          outInput.value = "Fase 1";
+          qBox.textContent = "Fase 1: Ativos HTO e JHT em uso estritamente técnico (sem pools de compra/venda).";
+          btn.textContent = "Indisponível na Fase 1";
+        } else {
+          outInput.value = "0.00";
+          qBox.textContent = "Sem liquidez disponível para este par no momento.";
+        }
         return;
       }
 
-      if (!userAccount) { await connectWallet(); if (!userAccount) return; }
-      if (!currentRouteSummary) {
-        await getQuote();
-        if (useUniswapFallback) { executeSwap(); return; }
-        if (!currentRouteSummary) { st.textContent = "Nenhuma cotação válida disponível para trocar."; return; }
-      }
+      currentRouteSummary = json.data.routeSummary;
+      const outRaw = BigInt(currentRouteSummary.amountOut);
+      const div = BigInt(10) ** BigInt(aOut.dec);
+      const whole = (outRaw / div).toString();
+      const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
+      outInput.value = `${whole}.${frac}`;
+      qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${Number(currentRouteSummary.gasUsd || 0).toFixed(4)}`;
+    } catch (e) {
+      outInput.value = "0.00";
+      qBox.textContent = "Erro na API: " + (e.message || "falha de rede.");
+      currentRouteSummary = null;
+    }
+  }
 
-      const amountWei = toWeiStr(val, aIn.dec);
-      const btn = document.getElementById("btnSwap");
-      btn.disabled = true;
+  async function executeSwap() {
+    const st = document.getElementById("statusMsg");
+    st.textContent = "";
 
-      try {
-        st.textContent = "Preparando transação na rota KyberSwap...";
-        const buildHost = "https://" + "aggregator-api." + "kyberswap.com";
-        const buildResp = await fetch(buildHost + "/polygon/api/v1/route/build", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "x-client-id": "harpija-pay-web3" },
-          body: JSON.stringify({ routeSummary: currentRouteSummary, sender: userAccount, recipient: userAccount, slippageTolerance: 100 })
-        });const buildJson = await buildResp.json();
-        if (!buildJson.data || !buildJson.data.data) throw new Error("Não foi possível montar os dados do swap.");
+    const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
+    const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
+    const val = document.getElementById("amountIn").value;
 
-        const routerAddress = buildJson.data.routerAddress;
-        if (aIn.sym !== "POL") {
-          const cleanOwner = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
-          const cleanSpender = routerAddress.toLowerCase().replace("0x", "").padStart(64, "0");
-          const allowHex = await window.ethereum.request({ method: "eth_call", params: [{ to: aIn.addr, data: "0xdd62ed3e" + cleanOwner + cleanSpender }, "latest"] });
-          if (BigInt(allowHex || "0x0") < BigInt(amountWei)) {
-            st.textContent = `Aprovando ${aIn.sym} na carteira...`;
-            const appTx = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from: userAccount, to: aIn.addr, data: "0x095ea7b3" + cleanSpender + "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" }] });
-            st.textContent = "Aguardando confirmação da aprovação...";
-            await waitReceipt(appTx);
-          }
+    if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
+      st.textContent = "Operação bloqueada: HTO e JHT estão em Fase 1 (sem oferta comercial ou pools ativas).";
+      return;
+    }
+
+    if (!userAccount) { await connectWallet(); if (!userAccount) return; }
+    if (!currentRouteSummary) {
+      await getQuote();
+      if (!currentRouteSummary) { st.textContent = "Nenhuma cotação válida disponível para trocar."; return; }
+    }
+
+    const amountWei = toWeiStr(val, aIn.dec);
+    const btn = document.getElementById("btnSwap");
+    btn.disabled = true;
+
+    try {
+      st.textContent = "Preparando transação na rota KyberSwap...";
+      const buildHost = "https://" + "aggregator-api." + "kyberswap.com";
+      const buildResp = await fetch(buildHost + "/polygon/api/v1/route/build", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-client-id": "harpija-pay-web3" },
+        body: JSON.stringify({ routeSummary: currentRouteSummary, sender: userAccount, recipient: userAccount, slippageTolerance: 100 })
+      });
+      const buildJson = await buildResp.json();
+      if (!buildJson.data || !buildJson.data.data) throw new Error("Não foi possível montar os dados do swap.");
+
+      const routerAddress = buildJson.data.routerAddress;
+      if (aIn.sym !== "POL") {
+        const cleanOwner = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
+        const cleanSpender = routerAddress.toLowerCase().replace("0x", "").padStart(64, "0");
+        const allowHex = await window.ethereum.request({ method: "eth_call", params: [{ to: aIn.addr, data: "0xdd62ed3e" + cleanOwner + cleanSpender }, "latest"] });
+        if (BigInt(allowHex || "0x0") < BigInt(amountWei)) {
+          st.textContent = `Aprovando ${aIn.sym} na carteira...`;
+          const appTx = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from: userAccount, to: aIn.addr, data: "0x095ea7b3" + cleanSpender + BigInt(amountWei).toString(16).padStart(64, "0") }] });
+          st.textContent = "Aguardando confirmação da aprovação...";
+          await waitReceipt(appTx);
         }
-              st.textContent = "Confirme a conversão na sua carteira...";
-        const txParams = { from: userAccount, to: routerAddress, data: buildJson.data.data };
-        if (aIn.sym === "POL") txParams.value = toWeiHex(val, 18);
+      }
 
-        const txHash = await window.ethereum.request({ method: "eth_sendTransaction", params: [txParams] });
-        st.textContent = "Transação enviada! Aguardando confirmação...";
-        await waitReceipt(txHash);
-        st.textContent = "Conversão concluída com sucesso!";
-        await loadBalances();
-      } catch (e) {
-        st.textContent = "Operação cancelada ou erro: " + (e.message || "falha na transação.");
-      } finally {
-        btn.disabled = false;
-      }
-    }
+      st.textContent = "Confirme a conversão na sua carteira...";
+      const txParams = { from: userAccount, to: routerAddress, data: buildJson.data.data };
+      if (aIn.sym === "POL") txParams.value = toWeiHex(val, 18);
 
-    async function waitReceipt(hash) {
-      for (let i = 0; i < 40; i++) {
-        const receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [hash] });
-        if (receipt) return receipt;
-        await new Promise(r => setTimeout(r, 2000));
-      }
+      const txHash = await window.ethereum.request({ method: "eth_sendTransaction", params: [txParams] });
+      st.textContent = "Transação enviada! Aguardando confirmação...";
+      await waitReceipt(txHash);
+      st.textContent = "Conversão concluída com sucesso!";
+      await loadBalances();
+    } catch (e) {
+      st.textContent = "Operação cancelada ou erro: " + (e.message || "falha na transação.");
+    } finally {
+      btn.disabled = false;
     }
-async function openPixOnRamp(cryptoCode) {
-      const st = document.getElementById("statusMsg");
-      if (userAccount && navigator.clipboard) {
-        try { await navigator.clipboard.writeText(userAccount); } catch (e) {}
-        st.textContent = "Endereço da carteira copiado! Selecione PIX (BRL) e " + cryptoCode + " (Polygon) na tela aberta.";
-      }
-      const host = "https://" + "app." + "rampnetwork.com";
-      window.open(host, "_blank");
-    }
+  }
 
-    async function openPixOffRamp() {
-      const st = document.getElementById("statusMsg");
-      if (userAccount && navigator.clipboard) {
-        try { await navigator.clipboard.writeText(userAccount); } catch (e) {}
-        st.textContent = "Endereço copiado! Selecione Vender (Sell) na rede Polygon para receber em BRL via PIX.";
-      }
-      const host = "https://" + "app." + "rampnetwork.com";
-      window.open(host, "_blank");
+  async function waitReceipt(hash) {
+    for (let i = 0; i < 40; i++) {
+      const receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [hash] });
+      if (receipt) return receipt;
+      await new Promise(r => setTimeout(r, 2000));
     }
-    initSelectors();
+  }
+
+  initSelectors();
+         
+      ;
   </script>
 </body>
 </html>
