@@ -3,347 +3,51 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Harpija Pay • Conversor Web3 (Kuroi Mori)</title>
+  <title>Harpija Pay — Fase 1 (Kuroi Mori)</title>
   <style>
-    * { box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif; }
     body {
-      margin: 0; padding: 20px 16px;
-      background: linear-gradient(rgba(9,13,22,0.85), rgba(9,13,22,0.94)), url('fundo.jpg');
-      background-size: cover; background-position: center; background-attachment: fixed;
-      color: #f8fafc; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0b1120;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
     }
-    .container { width: 100%; max-width: 460px; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-    .back-link { color: #fff; text-decoration: none; font-size: 14px; font-weight: 600; }
-    .net-badge { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 20px; }
-    .card { background: rgba(17,24,39,0.94); border: 1px solid #1f2937; border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.45); }
-    h1 { font-size: 21px; margin: 0 0 6px; color: #ffffff; }
-    .sub { font-size: 13px; color: #94a3b8; margin: 0 0 16px; line-height: 1.5; }
-    .btn-connect { width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; }
-    .wallet-box { display: none; background: #0f172a; border: 1px solid #1e293b; border-radius: 10px; padding: 8px 12px; margin-top: 12px; font-size: 13px; color: #34d399; text-align: center; font-family: monospace; }
-    .grid-balances { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
-    .bal-item { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 11px; }
-    .bal-label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; }
-    .bal-val { font-size: 12px; color: #ffffff; font-weight: 700; margin-top: 4px; word-break: break-all; }
-    .swap-group { background: #0f172a; border: 1px solid #1e293b; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
-    .swap-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-    .swap-label { font-size: 11px; color: #94a3b8; font-weight: 600; margin-bottom: 6px; display: block; }
-    .swap-input { width: 55%; background: transparent; border: none; color: #ffffff; font-size: 20px; font-weight: 700; outline: none; }
-    .swap-select { width: 45%; background: #1e293b; color: #ffffff; border: 1px solid #334155; border-radius: 10px; padding: 10px 8px; font-size: 13px; font-weight: 700; }
-    .swap-div { text-align: center; margin: -4px 0 6px; }
-    .btn-invert { background: #1e293b; color: #38bdf8; border: 1px solid #334155; border-radius: 50%; width: 34px; height: 34px; font-size: 16px; cursor: pointer; }
-    .quote-info { font-size: 12px; color: #34d399; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 10px; padding: 10px; margin-bottom: 12px; line-height: 1.5; }
-    .btn-exec { width: 100%; background: linear-gradient(135deg, #38bdf8, #0284c7); color: #ffffff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 800; cursor: pointer; }
-    .btn-exec:disabled { opacity: 0.5; cursor: not-allowed; }
-    .status-msg { font-size: 12px; color: #fbbf24; margin-top: 10px; text-align: center; line-height: 1.4; }
+    .box {
+      max-width: 520px;
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+    h1 { font-size: 22px; margin: 0 0 12px; color: #38bdf8; }
+    p, li { font-size: 14px; line-height: 1.6; color: #cbd5e1; }
+    ul { padding-left: 18px; margin: 14px 0 20px; }
+    a {
+      display: inline-block;
+      background: #10b981;
+      color: #06281e;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+    }
   </style>
-</head><body>
-  <div class="container">
-    <div class="top-bar">
-      <a href="index.html" class="back-link">← Voltar ao Portal</a>
-      <span class="net-badge" id="netLabel">Polygon PoS</span>
-    </div>
-    <div class="card">
-      <h1>⚡ Harpija Pay</h1>
-      <p class="sub">Conversor Web3 multi-moedas do Ecossistema Kuroi Mori com roteamento inteligente e taxas baixas.</p>
-      <button class="btn-connect" id="btnConnect" onclick="connectWallet()">Conectar Carteira Web3</button>
-      <div class="wallet-box" id="walletAddr"></div>
-      <div class="grid-balances">
-        <div class="bal-item"><div class="bal-label">POL (Polygon)</div><div class="bal-val" id="bal-POL">0,0000</div></div>
-        <div class="bal-item"><div class="bal-label">HTO (Harpija)</div><div class="bal-val" id="bal-HTO">0,0000</div></div>
-        <div class="bal-item"><div class="bal-label">JHT (Jaguar Token)</div><div class="bal-val" id="bal-JHT">0,0000</div></div>
-        <div class="bal-item"><div class="bal-label">BRZ (Real Digital)</div><div class="bal-val" id="bal-BRZ">0,00</div></div>
-        <div class="bal-item"><div class="bal-label">USDC (Dólar)</div><div class="bal-val" id="bal-USDC">0,00</div></div>
-        <div class="bal-item"><div class="bal-label">USDT (Tether)</div><div class="bal-val" id="bal-USDT">0,00</div></div>
-      </div>
-    </div>
-    <div class="card">
-      <h1>Conversor Inteligente</h1>
-      <p class="sub">Converta entre 15 ativos oficiais com a melhor rota e menor taxa na rede Polygon.</p>
-      <div class="swap-group">
-        <span class="swap-label">Você envia:</span>
-        <div class="swap-row">
-          <input type="number" id="amountIn" class="swap-input" value="10" min="0" step="any" oninput="debounceQuote()" />
-          <select id="tokenIn" class="swap-select" onchange="handleTokenChange()"></select>
-        </div>
-      </div>
-      <div class="swap-div"><button class="btn-invert" onclick="invertTokens()" title="Inverter moedas">⇅</button></div>
-      <div class="swap-group">
-        <span class="swap-label">Você recebe (estimado):</span>
-        <div class="swap-row">
-          <input type="text" id="amountOut" class="swap-input" value="0.00" readonly />
-          <select id="tokenOut" class="swap-select" onchange="debounceQuote()"></select>
-        </div>
-      </div>
-      <div class="quote-info" id="quoteBox">Digite um valor para buscar a melhor cotação em tempo real...</div>
-      <button class="btn-exec" id="btnSwap" onclick="executeSwap()">Buscar Cotação / Converter</button>
-      <div class="status-msg" id="statusMsg"></div>
-    <div class="card" style="border: 1px solid #334155; background: rgba(15, 23, 42, 0.75);">
-    <h2>⚠️ Conformidade Regulatória — Fase 1</h2>
-    <p class="sub" style="line-height: 1.5; margin-bottom: 10px;">
-      O ecossistema <strong>Kuroi Mori (HTO e JHT)</strong> opera atualmente em <strong>Fase 1 (uso estritamente técnico na rede Polygon PoS)</strong>.
-    </p>
-    <ul style="font-size: 13px; color: #94a3b8; padding-left: 18px; line-height: 1.6; margin: 0;">
-      <li><strong>Sem Venda Comercial:</strong> Não há venda pública, captação, rampas PIX ou pools ativas na Uniswap para HTO ou JHT nesta etapa.</li>
-      <li><strong>Fase 2 &amp; Bloqueio Geográfico:</strong> Operações comerciais ocorrerão apenas na Fase 2 via estrutura corporativa em Dubai (EAU), com <em>geoblocking</em> aplicado ao Brasil e jurisdições restritas.</li>
+</head>
+<body>
+  <div class="box">
+    <h1>⚡ Harpija Pay — Fase 1</h1>
+    <p>O módulo de conversão Web3 encontra-se <strong>temporariamente desativado</strong> durante a <strong>Fase 1 (Desenvolvimento Técnico)</strong> do ecossistema <strong>Kuroi Mori (HTO e JHT)</strong>.</p>
+    <ul>
+      <li><strong>Sem Venda Comercial:</strong> Não há oferta pública, rampas PIX ou pools ativas na Uniswap nesta etapa.</li>
+      <li><strong>Planejamento de Fase 2:</strong> Operações comerciais ocorrerão apenas na Fase 2 via empresa em Dubai (EAU), com bloqueio geográfico aplicado ao Brasil e jurisdições restritas.</li>
     </ul>
+    <a href="index.html">← Voltar ao Portal Kuroi Mori</a>
   </div>
-  </div>
-      <script>
-    const ASSETS = [
-      { sym: "POL",   name: "POL (Polygon)",          chain: "0x89", addr: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE", dec: 18, balId: "bal-POL",  fixed: 4 },
-      { sym: "HTO",   name: "HTO (Harpija Jaguar)",   chain: "0x89", addr: "0x41bfA0675Ed1dF3b1f36B4b54366d0dE1F087942", dec: 18, balId: "bal-HTO",  fixed: 4 },
-      { sym: "JHT",   name: "JHT (Jaguar • Floresta)",chain: "0x89", addr:"0xe28019f765c4ba1a1eaf2ccc7f5dcb2b17d22543" , dec: 18, balId: "bal-JHT",  fixed: 4 },
-      { sym: "BRZ",   name: "BRZ (Real Brasileiro)",  chain: "0x89", addr: "0x4eD141110F6EeeAbA9A1df36d8c26f684d2475Dc", dec: 18, balId: "bal-BRZ",  fixed: 2 },
-      { sym: "USDC",  name: "USDC (USD Coin)",        chain: "0x89", addr: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", dec: 6,  balId: "bal-USDC", fixed: 2 },
-      { sym: "USDT",  name: "USDT (Tether)",          chain: "0x89", addr: "0xc2132D05D31c914a87C6611C10748AEb04B58e8F", dec: 6,  balId: "bal-USDT", fixed: 2 },
-      { sym: "WETH",  name: "WETH (Ethereum)",        chain: "0x89", addr: "0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619", dec: 18 },
-      { sym: "UNI",   name: "UNI (Uniswap)",          chain: "0x89", addr: "0xb33EaAd8d922B1083446DC23f610c2567fB5180f", dec: 18 },
-      { sym: "LINK",  name: "LINK (Chainlink)",       chain: "0x89", addr: "0xb0897686c545045afc77cf20ec7a532e3120e0f1", dec: 18 },
-      { sym: "GRT",   name: "GRT (The Graph)",        chain: "0x89", addr: "0x5fe2b58c013d7601147dcdd68c143a77499f5531", dec: 18 },
-      { sym: "GALA",  name: "GALA (Gala Games)",      chain: "0x89", addr: "0x2C0367a9DB231dDeBd88a94b4f6461a6e47C58B1", dec: 8  },
-      { sym: "SHIB",  name: "SHIB (Shiba Inu)",       chain: "0x89", addr: "0x6f8a06447Ff6FcF75d803135a7de15CE88C1d4ec", dec: 18 },
-      { sym: "WAVAX", name: "WAVAX (Avalanche)",      chain: "0x89", addr: "0x2C89bbc92BD86F8075d1DEcc58C7F4E0107f286b", dec: 18 },
-      { sym: "BNB",   name: "BNB (Rede Binance BSC)", chain: "0x38", addr: "NATIVE_BSC", dec: 18 },
-      { sym: "OP",    name: "OP (Rede Optimism)",     chain: "0xa",  addr: "0x4200000000000000000000000000000000000042", dec: 18 }
-    ];
-
-    let userAccount = null;
-    let currentRouteSummary = null;
-    let useUniswapFallback = false;
-    let quoteTimer = null;
-
-    function initSelectors() {
-      const selIn = document.getElementById("tokenIn");
-      const selOut = document.getElementById("tokenOut");
-      ASSETS.forEach((a, idx) => {
-        selIn.add(new Option(a.name, idx));
-        if (a.chain === "0x89") selOut.add(new Option(a.name, idx));
-      });
-      selIn.value = "0";
-      selOut.value = "1";
-      getQuote();
-    }
-
-    function formatPTBR(hexVal, dec, fixed) {
-      if (!hexVal || hexVal === "0x") return (0).toFixed(fixed).replace(".", ",");
-      const raw = BigInt(hexVal);
-      const div = BigInt(10) ** BigInt(dec);
-      const whole = (raw / div).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-      const frac = (raw % div).toString().padStart(dec, "0").slice(0, fixed);
-      return whole + "," + frac;
-    }
-
-    function toWeiStr(amountStr, dec) {
-      const clean = String(amountStr).replace(",", ".");
-      const parts = clean.split(".");
-      const whole = parts.at(0) || "0";
-      const frac = (parts.at(1) || "").padEnd(dec, "0").slice(0, dec);
-      return (BigInt(whole) * (BigInt(10) ** BigInt(dec)) + BigInt(frac)).toString();
-    }
-
-    function toWeiHex(amountStr, dec) {
-      return "0x" + BigInt(toWeiStr(amountStr, dec)).toString(16);
-    }
-    async function connectWallet() {
-      const st = document.getElementById("statusMsg");
-      st.textContent = "";
-      if (!window.ethereum) { st.textContent = "Abra este link dentro do navegador Web3 da sua carteira."; return; }
-      try {
-        const accs = await window.ethereum.request({ method: "eth_requestAccounts" });
-        if (!accs || !accs.length) { st.textContent = "Nenhuma conta autorizada na carteira."; return; }
-        userAccount = accs.at(0);
-        const chainId = await window.ethereum.request({ method: "eth_chainId" });
-        if (chainId !== "0x89") {
-          try {
-            await window.ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: "0x89" }] });
-          } catch (switchErr) {
-            if (switchErr.code === 4902) {
-              await window.ethereum.request({
-                method: "wallet_addEthereumChain",
-                params: [{ chainId: "0x89", chainName: "Polygon Mainnet", nativeCurrency: { name: "POL", symbol: "POL", decimals: 18 }, rpcUrls: ["https://polygon-rpc.com"], blockExplorerUrls: ["https://polygonscan.com"] }]
-              });
-            } else { throw switchErr; }
-          }
-        }
-        document.getElementById("btnConnect").textContent = "Carteira Conectada";
-        const box = document.getElementById("walletAddr");
-        box.style.display = "block";
-        box.textContent = userAccount.slice(0, 6) + "..." + userAccount.slice(-4);
-        await loadBalances();
-      } catch (e) {
-        st.textContent = "Erro ao conectar: " + (e.message || "conexão recusada.");
-      }
-    }
-
-    async function loadBalances() {
-      if (!userAccount) return;
-      try {
-        const polHex = await window.ethereum.request({ method: "eth_getBalance", params: [userAccount, "latest"] });
-        document.getElementById("bal-POL").textContent = formatPTBR(polHex, 18, 4);
-      } catch (e) {}
-      const clean = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
-      for (const a of ASSETS) {
-        if (!a.balId || a.sym === "POL") continue;
-        try {
-          const res = await window.ethereum.request({ method: "eth_call", params: [{ to: a.addr, data: "0x70a08231" + clean }, "latest"] });
-          document.getElementById(a.balId).textContent = formatPTBR(res, a.dec, a.fixed);
-        } catch (e) {}
-      }
-    }
-
-    function handleTokenChange() {
-      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
-      const qBox = document.getElementById("quoteBox");
-      const btn = document.getElementById("btnSwap");
-      if (aIn.chain !== "0x89") {
-        document.getElementById("amountOut").value = "Ponte Cross-Chain";
-        qBox.textContent = "Ativo fora da Polygon. Use uma ponte cross-chain para trazer para a rede Polygon.";
-        btn.disabled = true;
-        return;
-      }
-      btn.disabled = false;
-      debounceQuote();
-    }
-
-    function invertTokens() {
-      const selIn = document.getElementById("tokenIn");
-      const selOut = document.getElementById("tokenOut");
-      const aIn = ASSETS.at(Number(selIn.value));
-      if (aIn.chain !== "0x89") return;
-      const tmp = selIn.value;
-      selIn.value = selOut.value;
-      selOut.value = tmp;
-      debounceQuote();
-    }
-
-    function debounceQuote() {
-      clearTimeout(quoteTimer);
-      quoteTimer = setTimeout(getQuote, 450);
-    }async function getQuote() {
-      const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
-      const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
-      const val = parseFloat(document.getElementById("amountIn").value);
-      const qBox = document.getElementById("quoteBox");
-      const outInput = document.getElementById("amountOut");
-      const btn = document.getElementById("btnSwap");
-
-      useUniswapFallback = false;
-      btn.textContent = "Buscar Cotação / Converter";
-
-      if (aIn.chain !== "0x89") return;
-      if (!val || val <= 0) { outInput.value = "0.00"; qBox.textContent = "Digite um valor maior que zero."; currentRouteSummary = null; return; }
-      if (aIn.sym === aOut.sym) { outInput.value = val.toString(); qBox.textContent = "Selecione moedas diferentes para converter."; currentRouteSummary = null; return; }
-
-      qBox.textContent = "Buscando melhor rota na Polygon...";
-      try {
-        const amountWei = toWeiStr(val.toString(), aIn.dec);
-        const host = "https://" + "aggregator-api." + "kyberswap.com";
-        const path = "/polygon/api/v1/routes?tokenIn=" + aIn.addr + "&tokenOut=" + aOut.addr + "&amountIn=" + amountWei;
-        const resp = await fetch(host + path, { headers: { "x-client-id": "harpija-pay-web3" } });
-        const json = await resp.json();
-
-        if (!json.data || !json.data.routeSummary) {
-        currentRouteSummary = null;
-        if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
-          outInput.value = "Fase 1";
-          qBox.textContent = "Fase 1: Ativos HTO e JHT em uso estritamente técnico (sem pools de compra/venda).";
-          btn.textContent = "Indisponível na Fase 1";
-        } else {
-          outInput.value = "0.00";
-          qBox.textContent = "Sem liquidez disponível para este par no momento.";
-        }
-        return;
-      }
-
-      currentRouteSummary = json.data.routeSummary;
-      const outRaw = BigInt(currentRouteSummary.amountOut);
-      const div = BigInt(10) ** BigInt(aOut.dec);
-      const whole = (outRaw / div).toString();
-      const frac = (outRaw % div).toString().padStart(aOut.dec, "0").slice(0, 6);
-      outInput.value = `${whole}.${frac}`;
-      qBox.textContent = `Rota encontrada • Taxa de rede estimada: $${Number(currentRouteSummary.gasUsd || 0).toFixed(4)}`;
-    } catch (e) {
-      outInput.value = "0.00";
-      qBox.textContent = "Erro na API: " + (e.message || "falha de rede.");
-      currentRouteSummary = null;
-    }
-  }
-
-  async function executeSwap() {
-    const st = document.getElementById("statusMsg");
-    st.textContent = "";
-
-    const aIn = ASSETS.at(Number(document.getElementById("tokenIn").value));
-    const aOut = ASSETS.at(Number(document.getElementById("tokenOut").value));
-    const val = document.getElementById("amountIn").value;
-
-    if (aIn.sym === "HTO" || aOut.sym === "HTO" || aIn.sym === "JHT" || aOut.sym === "JHT") {
-      st.textContent = "Operação bloqueada: HTO e JHT estão em Fase 1 (sem oferta comercial ou pools ativas).";
-      return;
-    }
-
-    if (!userAccount) { await connectWallet(); if (!userAccount) return; }
-    if (!currentRouteSummary) {
-      await getQuote();
-      if (!currentRouteSummary) { st.textContent = "Nenhuma cotação válida disponível para trocar."; return; }
-    }
-
-    const amountWei = toWeiStr(val, aIn.dec);
-    const btn = document.getElementById("btnSwap");
-    btn.disabled = true;
-
-    try {
-      st.textContent = "Preparando transação na rota KyberSwap...";
-      const buildHost = "https://" + "aggregator-api." + "kyberswap.com";
-      const buildResp = await fetch(buildHost + "/polygon/api/v1/route/build", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-client-id": "harpija-pay-web3" },
-        body: JSON.stringify({ routeSummary: currentRouteSummary, sender: userAccount, recipient: userAccount, slippageTolerance: 100 })
-      });
-      const buildJson = await buildResp.json();
-      if (!buildJson.data || !buildJson.data.data) throw new Error("Não foi possível montar os dados do swap.");
-
-      const routerAddress = buildJson.data.routerAddress;
-      if (aIn.sym !== "POL") {
-        const cleanOwner = userAccount.toLowerCase().replace("0x", "").padStart(64, "0");
-        const cleanSpender = routerAddress.toLowerCase().replace("0x", "").padStart(64, "0");
-        const allowHex = await window.ethereum.request({ method: "eth_call", params: [{ to: aIn.addr, data: "0xdd62ed3e" + cleanOwner + cleanSpender }, "latest"] });
-        if (BigInt(allowHex || "0x0") < BigInt(amountWei)) {
-          st.textContent = `Aprovando ${aIn.sym} na carteira...`;
-          const appTx = await window.ethereum.request({ method: "eth_sendTransaction", params: [{ from: userAccount, to: aIn.addr, data: "0x095ea7b3" + cleanSpender + BigInt(amountWei).toString(16).padStart(64, "0") }] });
-          st.textContent = "Aguardando confirmação da aprovação...";
-          await waitReceipt(appTx);
-        }
-      }
-
-      st.textContent = "Confirme a conversão na sua carteira...";
-      const txParams = { from: userAccount, to: routerAddress, data: buildJson.data.data };
-      if (aIn.sym === "POL") txParams.value = toWeiHex(val, 18);
-
-      const txHash = await window.ethereum.request({ method: "eth_sendTransaction", params: [txParams] });
-      st.textContent = "Transação enviada! Aguardando confirmação...";
-      await waitReceipt(txHash);
-      st.textContent = "Conversão concluída com sucesso!";
-      await loadBalances();
-    } catch (e) {
-      st.textContent = "Operação cancelada ou erro: " + (e.message || "falha na transação.");
-    } finally {
-      btn.disabled = false;
-    }
-  }
-
-  async function waitReceipt(hash) {
-    for (let i = 0; i < 40; i++) {
-      const receipt = await window.ethereum.request({ method: "eth_getTransactionReceipt", params: [hash] });
-      if (receipt) return receipt;
-      await new Promise(r => setTimeout(r, 2000));
-    }
-  }
-
-  initSelectors();
-         
-      ;
-  </script>
 </body>
 </html>
